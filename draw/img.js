@@ -3,14 +3,10 @@ module.exports = function (regl) {
     frag: `
       precision highp float;
       varying vec2 vpos;
-      uniform float time;
+      uniform sampler2D img;
       void main () {
         vec2 uv = vpos*vec2(1,-1)*0.5+0.5;
-        vec3 rgb = mix(
-          vec3(0,uv),
-          vec3(uv.y,0,uv.x),
-          sin(time)*0.5+0.5
-        );
+        vec3 rgb = texture2D(img,uv).xyz;
         gl_FragColor = vec4(rgb,1);
       }
     `,
@@ -26,7 +22,7 @@ module.exports = function (regl) {
     attributes: { position: [-4,-4,-4,+4,+4,+0] },
     elements: [0,1,2],
     uniforms: {
-      time: regl.context('time')
+      img: regl.prop('img')
     },
     depth: { enable: false }
   })

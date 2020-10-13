@@ -29,11 +29,12 @@ module.exports = function (regl) {
       }
       void main () {
         vec2 uv = vpos*vec2(1,-1)*0.5+0.5;
-        vec2 c = vec2(15.0+mod(floor(channel/pow(10.0,vdigit)),10.0),0.0);
+        float d = mod(floor(channel/pow(10.0,vdigit)),10.0);
+        vec2 c = vec2(15.0+d,0.0);
         vec3 rgb = text(font, uv, c)*vec3(0,1,0.5);
         vec2 r = vec2(720,485);
-        vec3 mrgb = mix(rgb,rgb*shadow(uv,r),0.2);
-        gl_FragColor = vec4(mrgb,length(rgb));
+        vec3 mrgb = mix(rgb,rgb*shadow(uv,r),0.1);
+        gl_FragColor = vec4(mrgb,length(rgb)*step(vdigit-0.5,d));
       }
     `,
     vert: `
