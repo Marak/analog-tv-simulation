@@ -34,7 +34,7 @@ module.exports = function (regl) {
         vec3 rgb = text(font, uv, c)*vec3(0,1,0.5);
         vec2 r = vec2(720,485);
         vec3 mrgb = mix(rgb,rgb*shadow(uv,r),0.1);
-        gl_FragColor = vec4(mrgb,length(rgb)*step(vdigit-0.5,d));
+        gl_FragColor = vec4(mrgb,clamp(0.0,1.0,length(rgb)*step(vdigit-0.5,d)));
       }
     `,
     vert: `

@@ -11,6 +11,7 @@ var { EventEmitter } = require('events')
 
 var state = {
   events: new EventEmitter,
+  static: true,
   channel: {
     display: 63,
     value: 63,
@@ -60,6 +61,8 @@ window.addEventListener('keydown', (ev) => {
     } else {
       state.paused = true
     }
+  } else if (ev.key === 'q') {
+    state.static = !state.static
   }
 })
 function check(now) {
@@ -86,47 +89,91 @@ resl({
     font: { type: 'image', src: 'images/font.png' },
     intro: { type: 'image', src: 'images/intro.jpg' },
     questions: { type: 'image', src: 'images/questions.jpg' },
-    world: { type: 'image', src: 'images/world.jpg' },
+    why: { type: 'image', src: 'images/why.jpg' },
     television0: { type: 'image', src: 'images/television0.jpg' },
     television1: { type: 'image', src: 'images/television1.jpg' },
+    crt: { type: 'image', src: 'images/crt.jpg' },
+    world: { type: 'image', src: 'images/world.jpg' },
+
+    frames: { type: 'image', src: 'images/frames.jpg' },
+    interlacing: { type: 'image', src: 'images/interlacing.jpg' },
+    radioWaves: { type: 'image', src: 'images/radio-waves.jpg' },
+    line: { type: 'image', src: 'images/line.jpg' },
+    field: { type: 'image', src: 'images/field.jpg' },
+
+    yiq: { type: 'image', src: 'images/yiq.jpg' },
+    rgbToYiq: { type: 'image', src: 'images/rgb-to-yiq.jpg' },
+    yiqToRgb: { type: 'image', src: 'images/yiq-to-rgb.jpg' },
+    qamEq: { type: 'image', src: 'images/qam-eq.jpg' },
+    qamLine: { type: 'image', src: 'images/qam-line.jpg' },
+
+    simGoals: { type: 'image', src: 'images/sim-goals.jpg' },
+    sponsors: { type: 'image', src: 'images/sponsors.jpg' },
+    simModDemod: { type: 'image', src: 'images/sim-mod-demod.jpg' },
+    modulate: { type: 'image', src: 'images/modulate.jpg' },
+
   },
   onDone: (assets) => {
     var font = regl.texture(assets.font)
     var img = {
       intro: regl.texture(assets.intro),
       questions: regl.texture(assets.questions),
+      why: regl.texture(assets.why),
       television0: regl.texture(assets.television0),
       television1: regl.texture(assets.television1),
+      crt: regl.texture(assets.crt),
       world: regl.texture(assets.world),
+      radioWaves: regl.texture(assets.radioWaves),
+
+      frames: regl.texture(assets.frames),
+      interlacing: regl.texture(assets.interlacing),
+      line: regl.texture(assets.line),
+      field: regl.texture(assets.field),
+
+      yiq: regl.texture(assets.yiq),
+      rgbToYiq: regl.texture(assets.rgbToYiq),
+      yiqToRgb: regl.texture(assets.yiqToRgb),
+      qamEq: regl.texture(assets.qamEq),
+      qamLine: regl.texture(assets.qamLine),
     }
     var channels = {
       empty: { signal: draw.blank, quality: 0 },
-      64: { signal: draw.helicalScan, quality: 75 },
+      68: { signal: draw.helicalScan, quality: 75 },
       63: { signal: () => draw.img({ img: img.intro }), quality: 85 },
       62: {
         signal: () => draw.img({ img: img.questions }),
         quality: (now) => 70 + Math.floor(Math.sin(now/2000)*4)/4*10
       },
       61: {
+        signal: () => draw.img({ img: img.why }),
+        quality: (now) => 70 - Math.pow(Math.sin(now/1000*2)*0.5+0.5,3)*55
+      },
+      60: {
         signal: ({time}) => {
           return draw.img({ img: time%1<0.5 ? img.television0 : img.television1 })
         },
-        quality: 87
+        quality: (now) => 85 - Math.pow(Math.sin(now/1000*0.5)*0.5+0.5,3)*30
       },
-      60: { signal: () => draw.img({ img: img.world }), quality: 80 },
+      58: { signal: () => draw.img({ img: img.crt }), quality: 90 },
+      56: { signal: () => draw.img({ img: img.world }), quality: 80 },
+
+      54: { signal: () => draw.img({ img: img.frames }), quality: 75 },
+      53: { signal: () => draw.img({ img: img.interlacing }), quality: 80 },
+      52: { signal: () => draw.img({ img: img.radioWaves }), quality: 70 },
+      51: { signal: () => draw.img({ img: img.line }), quality: 85 },
+      50: { signal: () => draw.img({ img: img.field }), quality: 95 },
     }
     state.events.on('frame', () => window.requestAnimationFrame(frame))
     frame()
+    window.addEventListener('resize', () => window.requestAnimationFrame(frame))
     function frame() {
       var now = performance.now()
       var ch = channels[state.channel.value] || channels.empty
       regl.clear({ color: [0,0,0,1], depth: true })
       tv.modulate(ch.signal)
       tv.filter(() => {
-        draw.static({
-          quality: typeof ch.quality === 'function'
-            ? ch.quality(now) : ch.quality
-        })
+        var q = typeof ch.quality === 'function' ? ch.quality(now) : ch.quality
+        draw.static({ quality: state.static ? q : 100 })
       })
       tv.demodulate()
       if (now - state.channel.changed < 2000) {
