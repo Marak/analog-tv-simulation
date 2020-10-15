@@ -9,20 +9,36 @@ var regl = require('regl')({
 })
 var { EventEmitter } = require('events')
 
-var ch = Number(location.hash.replace(/^#/,''))
-if (!validCh(ch)) ch = 63
-
 var state = {
   events: new EventEmitter,
   static: true,
   channel: {
-    display: ch,
-    value: ch,
+    display: 63,
+    value: 63,
     changed: 0,
     typing: 0,
     scanning: false
   },
   paused: false
+}
+hashChange()
+window.addEventListener('hashchange', hashChange)
+
+function hashChange(ev) {
+  var ch = Number(location.hash.replace(/^#/,''))
+  if (validCh(ch)) {
+    state.channel.display = ch
+    state.channel.value = ch
+    state.channel.changed = performance.now()
+    state.channel.typing = 0
+    state.channel.scanning = false
+  } else {
+    state.channel.display = state.channel.value
+    state.channel.changed = performance.now()
+    state.channel.typing = 0
+    state.channel.scanning = false
+    location.hash = String(state.channel.value)
+  }
 }
 
 function wrapCh(n) {
@@ -30,7 +46,9 @@ function wrapCh(n) {
   if (n < 2) return 83
   return n
 }
-function validCh(n) { return n >= 2 && n <= 83 }
+function validCh(n) {
+  return n >= 2 && n <= 83 && n === Math.floor(n)
+}
 
 function unpause() {
   if (state.paused) {
