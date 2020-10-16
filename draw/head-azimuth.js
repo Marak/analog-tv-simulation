@@ -48,8 +48,8 @@ app.route('*', (state, emit) => {
     <span class="az">${state.azimuth}</span> degrees
   </div>`
 })
-var root = document.createElement('div')
-app.mount(root)
+var el = require('./lib/elem.js')()
+app.mount(el.element)
 
 var tmpq = [0,0,0,1]
 var tmpv = [0,0,0]
@@ -271,8 +271,10 @@ function update(time) {
 update(0)
 
 module.exports = function (regl) {
-  var camera = require('regl-camera')(regl, {
-    distance: 3, theta: 0.7, phi: 0.5
+  var camera = require('./lib/camera.js')(regl, {
+    distance: 3, theta: 0.7, phi: 0.5,
+    minDistance: 0.5,
+    maxDistance: 7
   })
   var draw = {
     solid: solid(regl),
@@ -282,18 +284,8 @@ module.exports = function (regl) {
   var iv = null
   var last = 0
   return function ({time}) {
-    if (!attached) {
-      document.body.appendChild(root)
-      attached = true
-      iv = setInterval(() => {
-        if (performance.now() - last > 50) {
-          clearInterval(iv)
-          iv = null
-          document.body.removeChild(root)
-          attached = false
-        }
-      }, 100)
-    }
+    el.touch()
+    camera.touch()
     regl.clear({ color: [0.35,0,0.35,1], depth: true })
     camera(() => {
       draw.solid(props.solid)

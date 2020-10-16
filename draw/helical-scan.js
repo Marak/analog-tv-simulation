@@ -1,8 +1,9 @@
 var mat4 = require('gl-mat4')
 var cylinder = require('primitive-cylinder')
+var el = require('./lib/elem.js')()
 
 module.exports = function (regl) {
-  var camera = require('regl-camera')(regl, {
+  var camera = require('./lib/camera.js')(regl, {
     distance: 3.5,
     maxDistance: 10,
     minDistance: 2,
@@ -188,6 +189,7 @@ module.exports = function (regl) {
       }
     })
     emitter.on('frame', (time) => {
+      camera.touch()
       regl.clear({ color: [0.3,0.25,0.5,1], depth: true })
       camera(() => {
         uniforms(() => {
@@ -199,28 +201,11 @@ module.exports = function (regl) {
       update(time*state.speed)
     })
   })
-
-  var root = document.createElement('div')
-  var attached = false
-  var last = 0
-  app.mount(root)
-
-  var iv = null // check if the frame has been called
+  app.mount(el.element)
 
   return function ({time}) {
-    last = time
-    if (!attached) {
-      document.body.appendChild(root)
-      attached = true
-      iv = setInterval(() => {
-        if (performance.now() - last > 50) {
-          clearInterval(iv)
-          iv = null
-          document.body.removeChild(root)
-          attached = false
-        }
-      }, 100)
-    }
+    el.touch()
+    camera.touch()
     emitter.emit('frame', time)
   }
 

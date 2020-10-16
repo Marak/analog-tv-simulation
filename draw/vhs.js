@@ -1,9 +1,11 @@
 var mat4 = require('gl-mat4')
 
 module.exports = function (regl) {
-  var camera = require('regl-camera')(regl, {
+  var camera = require('./lib/camera.js')(regl, {
     theta: 1.5,
-    distance: 2.5
+    distance: 2.5,
+    minDistance: 0.5,
+    maxDistance: 10
   })
   var props = {
     tape: { img: regl.texture() }
@@ -20,6 +22,7 @@ module.exports = function (regl) {
     }
   })
   return function () {
+    camera.touch()
     regl.clear({ color: [0.6,0,0.4,1], depth: true })
     camera(() => {
       draw.tape(props.tape)
