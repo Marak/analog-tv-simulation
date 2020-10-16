@@ -15,9 +15,11 @@
     "mouse-wheel": "^1.2.0",
     "ntsc-video-simulator": "^1.0.0",
     "primitive-cylinder": "^1.0.3",
-    "regl-camera": "^2.1.1"
+    "regl-camera": "^2.1.1",
+    "indexhtmlify": "^2.0.0"
   },
   "scripts": {
-    "start": "budo main.js"
+    "start": "budo main.js",
+    "html": "browserify main.js | indexhtmlify --title 'analog video simulation' > index.html"
   }
 }

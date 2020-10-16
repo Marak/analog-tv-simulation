@@ -10,6 +10,7 @@ var regl = require('regl')({
 var { EventEmitter } = require('events')
 
 var state = {
+  drawing: false,
   events: new EventEmitter,
   ui: {
     enabled: false,
@@ -331,9 +332,17 @@ resl({
       20: { signal: draw.books, quality: 80 },
       19: { signal: draw.code, quality: 70 },
     }
-    state.events.on('frame', () => window.requestAnimationFrame(frame))
+    state.events.on('frame', () => {
+      if (state.drawing) return
+      state.drawing = true
+      window.requestAnimationFrame(frame)
+    })
     frame()
-    window.addEventListener('resize', () => window.requestAnimationFrame(frame))
+    window.addEventListener('resize', () => {
+      if (state.drawing) return
+      state.drawing = true
+      window.requestAnimationFrame(frame)
+    })
     function frame() {
       var now = performance.now()
       var ch = channels[state.channel.value] || channels.empty
@@ -348,7 +357,12 @@ resl({
         draw.channel({ channel: state.channel.display, font })
       }
       check(now)
-      if (!state.paused) window.requestAnimationFrame(frame)
+      if (!state.paused) {
+        state.drawing = true
+        window.requestAnimationFrame(frame)
+      } else {
+        state.drawing = false
+      }
     }
   }
 })
