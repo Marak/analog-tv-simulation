@@ -179,9 +179,10 @@ var draw = {
   vhs: require('./draw/vhs.js')(regl),
   hyperlinks: require('./draw/hyperlinks.js')(regl),
   books: require('./draw/books.js')(regl),
+  code: require('./draw/code.js')(regl),
 }
 
-var tv = require('ntsc-video')({ regl })
+var tv = require('ntsc-video-simulator')({ regl })
 resl({
   manifest: {
     font: { type: 'image', src: 'images/font.png' },
@@ -328,6 +329,7 @@ resl({
 
       21: { signal: draw.hyperlinks, quality: 80 },
       20: { signal: draw.books, quality: 80 },
+      19: { signal: draw.code, quality: 70 },
     }
     state.events.on('frame', () => window.requestAnimationFrame(frame))
     frame()
