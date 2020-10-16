@@ -60,12 +60,26 @@ module.exports = function(regl) {
         color: white;
         text-shadow: 1px 1px purple;
       }
+      .hyperlinks .neocities {
+        margin-top: 2em;
+      }
+      .hyperlinks .neocities span {
+        display: inline-block;
+        height: 107px;
+        vertical-align: middle;
+        margin-left: 1ex;
+      }
     </style>
     <ul>
       <li><a href="https://github.com/substack/glsl-ntsc-video">glsl-ntsc-video</a></li>
       <li><a href="https://github.com/substack/ntsc-video-simulator">ntsc-video-simulator</a></li>
       <li><a href="https://github.com/substack/analog-tv-simulation">analog-tv-simulation</a></li>
     </ul>
+    <div class="neocities">
+      <a href="https://neocities.org/site/substack"
+        ><img src="images/neocities-cat.png" width="130" height="107">
+        <span>follow me on neocities</span></a>
+    </div>
   </div>`)
   return function() {
     el.touch()
