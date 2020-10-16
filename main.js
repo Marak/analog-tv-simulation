@@ -11,6 +11,10 @@ var { EventEmitter } = require('events')
 
 var state = {
   events: new EventEmitter,
+  ui: {
+    enabled: false,
+    attached: true
+  },
   static: true,
   channel: {
     display: 63,
@@ -21,22 +25,62 @@ var state = {
   },
   paused: false
 }
+state.events.on('set-channel', function(ch) {
+  state.channel.display = ch
+  state.channel.value = ch
+  state.channel.changed = performance.now()
+  state.channel.typing = 0
+  state.channel.scanning = false
+})
+state.events.on('key-ch', function() {
+  if (!state.ui.enabled && state.ui.attached) {
+    state.ui.attached = false
+    document.body.removeChild(ui)
+  }
+})
+
 hashChange()
 window.addEventListener('hashchange', hashChange)
+
+var html = require('choo/html')
+var ui = (function () {
+  var elem = html`<div class="ch-ui">
+    <style>
+      .ch-ui button {
+        font-family: monospace;
+        font-size: 4em;
+        background-color: transparent;
+        color: white;
+        opacity: 50%;
+        border-width: 0px;
+      }
+    </style>
+    <div><button onclick=${up}>\u25b2</button></div>
+    <div><button onclick=${down}>\u25bc</button></div>
+  </div>`
+  elem.style.position = 'absolute'
+  elem.style.top = '5px'
+  elem.style.left = '5px'
+  document.body.appendChild(elem)
+  return elem
+  function up() {
+    state.ui.enabled = true
+    state.events.emit('set-channel', wrapCh(state.channel.value+1))
+    location.hash = String(state.channel.value)
+  }
+  function down() {
+    state.ui.enabled = true
+    state.events.emit('set-channel', wrapCh(state.channel.value-1))
+    location.hash = String(state.channel.value)
+  }
+})()
 
 function hashChange(ev) {
   var ch = Number(location.hash.replace(/^#/,''))
   if (validCh(ch)) {
-    state.channel.display = ch
-    state.channel.value = ch
-    state.channel.changed = performance.now()
-    state.channel.typing = 0
-    state.channel.scanning = false
+    state.events.emit('set-channel', ch)
   } else {
-    state.channel.display = state.channel.value
-    state.channel.changed = performance.now()
-    state.channel.typing = 0
-    state.channel.scanning = false
+    state.events.emit('set-channel', ch)
     location.hash = String(state.channel.value)
   }
 }
@@ -58,19 +102,13 @@ function unpause() {
 }
 window.addEventListener('keydown', (ev) => {
   if (ev.key === 'ArrowDown') {
-    state.channel.value = wrapCh(state.channel.value - 1)
-    state.channel.display = state.channel.value
-    state.channel.changed = performance.now()
-    state.channel.typing = 0
-    state.channel.scanning = true
+    state.events.emit('key-ch')
+    state.events.emit('set-channel', wrapCh(state.channel.value - 1))
     location.hash = String(state.channel.value)
     unpause()
   } else if (ev.key === 'ArrowUp') {
-    state.channel.value = wrapCh(state.channel.value + 1)
-    state.channel.display = state.channel.value
-    state.channel.changed = performance.now()
-    state.channel.typing = 0
-    state.channel.scanning = true
+    state.events.emit('key-ch')
+    state.events.emit('set-channel', wrapCh(state.channel.value + 1))
     location.hash = String(state.channel.value)
     unpause()
   } else if (/^[0-9]/.test(ev.key)) {
@@ -85,6 +123,7 @@ window.addEventListener('keydown', (ev) => {
       } else {
         state.channel.display = state.channel.value
       }
+      state.events.emit('key-ch')
       state.channel.typing = 0
       state.channel.scanning = false
       location.hash = String(state.channel.value)
