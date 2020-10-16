@@ -184,13 +184,13 @@ var props = {
 
 ;(function () { // arrows
   for (var i = 0; i < 100; i++) {
-    props.solid.push({
+    var p = {
       positions: [
         +0.0,+0.0,+0.8,
-        +0.1,+0.1,+0.5,
-        -0.1,+0.1,+0.5,
-        -0.1,-0.1,+0.5,
-        +0.1,-0.1,+0.5,
+        +0.15,+0.15,+0.5,
+        -0.15,+0.15,+0.5,
+        -0.15,-0.15,+0.5,
+        +0.15,-0.15,+0.5,
         +0.05,+0.05,+0.5,
         -0.05,+0.05,+0.5,
         -0.05,-0.05,+0.5,
@@ -217,9 +217,18 @@ var props = {
         magnitude: Math.random(),
         direction: vec3.random([])
       }
-    })
+    }
+    setArrowColors(p)
+    props.solid.push(p)
   }
 })()
+
+function setArrowColors(p) {
+  for (var i = 0; i < p.colors.length; i++) {
+    p.colors[i] = (0.5*p.pose.direction[(i+2)%3]+0.5)
+      * p.pose.magnitude
+  }
+}
 
 function update(time) {
   var m
@@ -253,6 +262,7 @@ function update(time) {
     if (p.pose.position[2] > 5) {
       p.pose.position[2] -= 10
       vec3.random(p.pose.direction)
+      setArrowColors(p)
     } else if (p.pose.position[2] > 0 && prevZ <= 0) {
       var s = Math.sin(time*2)
       vec3.set(p.pose.direction,
@@ -261,11 +271,13 @@ function update(time) {
         Math.cos(rstate.azimuth)*Math.sign(s)
       )
       p.pose.magnitude = Math.abs(s)
+      setArrowColors(p)
     }
     quat.rotationTo(tmpq,forward,p.pose.direction)
     mat4.fromQuat(tmpm,tmpq)
     mat4.multiply(m,m,tmpm)
-    mat4.scale(m,m,vec3.set(tmpv,0.2,0.1,0.15*p.pose.magnitude+0.05))
+    mat4.scale(m,m,
+      vec3.set(tmpv,0.4,0.2,0.3*p.pose.magnitude+0.05))
   }
 }
 update(0)

@@ -67,7 +67,7 @@ var ui = (function () {
     </style>
     <div><button onclick=${up}>\u25b2</button></div>
     <div><button onclick=${down}>\u25bc</button></div>
-    <div><button class="bottom" onclick=${toggleStatic}>x</button></div>
+    <div><button class="bottom" onclick=${toggleStatic}>s</button></div>
   </div>`
   elem.style.position = 'absolute'
   elem.style.top = '5px'
@@ -150,7 +150,7 @@ window.addEventListener('keydown', (ev) => {
     } else {
       state.paused = true
     }
-  } else if (ev.key === 'x') {
+  } else if (ev.key === 's') {
     state.static = !state.static
   }
 })
@@ -319,7 +319,7 @@ resl({
       },
       28: {
         signal: draw.headAzimuth,
-        quality: (now) => 80 - Math.floor(Math.pow(Math.sin(now/2000)*0.5+0.5,8)*4)/4*15
+        quality: (now) => 95 - Math.floor(Math.pow(Math.sin(now/2000)*0.5+0.5,8)*4)/4*20
       },
       27: { signal: draw.helicalScan, quality: 75 },
       26: { signal: () => draw.img({ img: img.vhsTapeLayout }), quality: 80 },
