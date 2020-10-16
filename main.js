@@ -13,8 +13,8 @@ var state = {
   drawing: false,
   events: new EventEmitter,
   ui: {
-    enabled: false,
-    attached: true
+    attached: true,
+    selected: false
   },
   static: true,
   channel: {
@@ -34,10 +34,30 @@ state.events.on('set-channel', function(ch) {
   state.channel.scanning = false
 })
 state.events.on('key-ch', function() {
-  if (!state.ui.enabled && state.ui.attached) {
+  if (!state.ui.selected && state.ui.attached) {
     state.ui.attached = false
     document.body.removeChild(ui)
   }
+})
+state.events.on('num', function(num) {
+  if (state.channel.typing === 0) {
+    state.channel.display = Number(num)
+    state.channel.typing++
+  } else if (state.channel.typing === 1) {
+    state.channel.display *= 10
+    state.channel.display += Number(num)
+    if (validCh(state.channel.display)) {
+      state.channel.value = state.channel.display
+    } else {
+      state.channel.display = state.channel.value
+    }
+    state.events.emit('key-ch')
+    state.channel.typing = 0
+    state.channel.scanning = false
+    location.hash = String(state.channel.value)
+  }
+  state.channel.changed = performance.now()
+  unpause()
 })
 
 hashChange()
@@ -45,6 +65,32 @@ window.addEventListener('hashchange', hashChange)
 
 var html = require('choo/html')
 var ui = (function () {
+  var numpad = html`<div class="numpad hide">
+    <div>
+      <button onclick=${typeKey}>1</button>
+      <button onclick=${typeKey}>2</button>
+      <button onclick=${typeKey}>3</button>
+    </div>
+    <div>
+      <button onclick=${typeKey}>4</button>
+      <button onclick=${typeKey}>5</button>
+      <button onclick=${typeKey}>6</button>
+    </div>
+    <div>
+      <button onclick=${typeKey}>7</button>
+      <button onclick=${typeKey}>8</button>
+      <button onclick=${typeKey}>9</button>
+    </div>
+    <div>
+      <button onclick=${typeKey}>0</button>
+    </div>
+  </div>`
+  var numpadButton = html`<button
+    class="numpad-button" onclick=${toggleNumpad}>\u2328</button>`
+  function typeKey(ev) {
+    state.ui.selected = true
+    state.events.emit('num', Number(ev.target.textContent))
+  }
   var elem = html`<div class="ch-ui">
     <style>
       .ch-ui {
@@ -57,18 +103,40 @@ var ui = (function () {
         font-size: 4em;
         background-color: transparent;
         color: white;
+        text-shadow: 2px 2px black;
         opacity: 50%;
         border-width: 0px;
       }
-      .ch-ui button.bottom {
+      .ch-ui button.static {
         display: block;
         position: absolute;
-        bottom: 5px;
+        bottom: 1.4em;
+      }
+      .ch-ui button.active {
+        background-color: white;
+        color: black;
+      }
+      .ch-ui button.numpad-button {
+        display: block;
+        position: absolute;
+        bottom: 0.2em;
+      }
+      .ch-ui .hide {
+        display: none;
+      }
+      .ch-ui .numpad {
+        position: absolute;
+        bottom: 0.2em;
+        width: 18ex;
+        text-align: center;
+        left: 6ex;
       }
     </style>
     <div><button onclick=${up}>\u25b2</button></div>
     <div><button onclick=${down}>\u25bc</button></div>
-    <div><button class="bottom" onclick=${toggleStatic}>s</button></div>
+    <div><button class="static" onclick=${toggleStatic}>s</button></div>
+    <div>${numpadButton}</div>
+    ${numpad}
   </div>`
   elem.style.position = 'absolute'
   elem.style.top = '5px'
@@ -76,18 +144,22 @@ var ui = (function () {
   document.body.appendChild(elem)
   return elem
   function up() {
-    state.ui.enabled = true
+    state.ui.selected = true
     state.events.emit('set-channel', wrapCh(state.channel.value+1))
     location.hash = String(state.channel.value)
   }
   function down() {
-    state.ui.enabled = true
+    state.ui.selected = true
     state.events.emit('set-channel', wrapCh(state.channel.value-1))
     location.hash = String(state.channel.value)
   }
   function toggleStatic() {
-    state.ui.enabled = true
+    state.ui.selected = true
     state.static = !state.static
+  }
+  function toggleNumpad() {
+    numpad.classList.toggle('hide')
+    numpadButton.classList.toggle('active')
   }
 })()
 
@@ -127,24 +199,7 @@ window.addEventListener('keydown', (ev) => {
     location.hash = String(state.channel.value)
     unpause()
   } else if (/^[0-9]/.test(ev.key)) {
-    if (state.channel.typing === 0) {
-      state.channel.display = Number(ev.key)
-      state.channel.typing++
-    } else if (state.channel.typing === 1) {
-      state.channel.display *= 10
-      state.channel.display += Number(ev.key)
-      if (validCh(state.channel.display)) {
-        state.channel.value = state.channel.display
-      } else {
-        state.channel.display = state.channel.value
-      }
-      state.events.emit('key-ch')
-      state.channel.typing = 0
-      state.channel.scanning = false
-      location.hash = String(state.channel.value)
-    }
-    state.channel.changed = performance.now()
-    unpause()
+    state.events.emit('num', Number(ev.key))
   } else if (ev.key === ' ') {
     if (state.paused) {
       unpause()
@@ -153,6 +208,14 @@ window.addEventListener('keydown', (ev) => {
     }
   } else if (ev.key === 's') {
     state.static = !state.static
+  } else if (ev.key === 'u') {
+    state.ui.selected = true
+    state.ui.attached = !state.ui.attached
+    if (state.ui.attached) {
+      document.body.appendChild(ui)
+    } else {
+      document.body.removeChild(ui)
+    }
   }
 })
 function check(now) {
