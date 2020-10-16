@@ -124,6 +124,8 @@ var draw = {
   helicalScan: require('./draw/helical-scan.js')(regl),
   headAzimuth: require('./draw/head-azimuth.js')(regl),
   vhs: require('./draw/vhs.js')(regl),
+  hyperlinks: require('./draw/hyperlinks.js')(regl),
+  books: require('./draw/books.js')(regl),
 }
 
 var tv = require('ntsc-video')({ regl })
@@ -155,12 +157,18 @@ resl({
     sponsors: { type: 'image', src: 'images/sponsors.jpg' },
     simModDemod: { type: 'image', src: 'images/sim-mod-demod.jpg' },
     modulate: { type: 'image', src: 'images/modulate.jpg' },
+    qamQuadrature: { type: 'image', src: 'images/qam-quadrature.jpg' },
     demodulate: { type: 'image', src: 'images/demodulate.jpg' },
     demodulateIq: { type: 'image', src: 'images/demodulate-iq.jpg' },
     demodulateCode1: { type: 'image', src: 'images/demodulate-code-1.jpg' },
     demodulateCode2: { type: 'image', src: 'images/demodulate-code-2.jpg' },
+    demodulateCode3: { type: 'image', src: 'images/demodulate-code-3.jpg' },
     maskCode: { type: 'image', src: 'images/mask-code.jpg' },
 
+    vhsTapeLayout: { type: 'image', src: 'images/vhs-tape-layout.jpg' },
+    vhsVideoAzimuth: { type: 'image', src: 'images/vhs-video-azimuth.jpg' },
+    vhsHiFi: { type: 'image', src: 'images/vhs-hi-fi.jpg' },
+    vhsSim: { type: 'image', src: 'images/vhs-sim.jpg' },
   },
   onDone: (assets) => {
     var font = regl.texture(assets.font)
@@ -185,20 +193,26 @@ resl({
       yiqToRgb: regl.texture(assets.yiqToRgb),
       qamEq: regl.texture(assets.qamEq),
       qamLine: regl.texture(assets.qamLine),
+
+      simGoals: regl.texture(assets.simGoals),
+      sponsors: regl.texture(assets.sponsors),
+      simModDemod: regl.texture(assets.simModDemod),
+      modulate: regl.texture(assets.modulate),
+      qamQuadrature: regl.texture(assets.qamQuadrature),
+      demodulate: regl.texture(assets.demodulate),
+      demodulateIq: regl.texture(assets.demodulateIq),
+      demodulateCode1: regl.texture(assets.demodulateCode1),
+      demodulateCode2: regl.texture(assets.demodulateCode2),
+      demodulateCode3: regl.texture(assets.demodulateCode3),
+      maskCode: regl.texture(assets.maskCode),
+
+      vhsTapeLayout: regl.texture(assets.vhsTapeLayout),
+      vhsVideoAzimuth: regl.texture(assets.vhsVideoAzimuth),
+      vhsHiFi: regl.texture(assets.vhsHiFi),
+      vhsSim: regl.texture(assets.vhsSim)
     }
     var channels = {
       empty: { signal: draw.blank, quality: 0 },
-      72: {
-        signal: draw.headAzimuth,
-        quality: (now) => 80 - Math.floor(Math.pow(Math.sin(now/2000)*0.5+0.5,8)*4)/4*15
-      },
-      69: {
-        signal: draw.vhs,
-        quality: (now) => 80 - Math.floor(
-          Math.pow(Math.sin(now/1000*2)*0.5+0.5,8.0)*10
-        )/10*50
-      },
-      68: { signal: draw.helicalScan, quality: 75 },
       63: { signal: () => draw.img({ img: img.intro }), quality: 85 },
       62: {
         signal: () => draw.img({ img: img.questions }),
@@ -222,7 +236,45 @@ resl({
       53: { signal: () => draw.img({ img: img.interlacing }), quality: 80 },
       52: { signal: () => draw.img({ img: img.radioWaves }), quality: 70 },
       51: { signal: () => draw.img({ img: img.line }), quality: 85 },
-      50: { signal: () => draw.img({ img: img.field }), quality: 95 },
+      50: { signal: () => draw.img({ img: img.field }), quality: 87 },
+
+      47: { signal: () => draw.img({ img: img.yiq }), quality: 80 },
+      46: { signal: () => draw.img({ img: img.rgbToYiq }), quality: 80 },
+      45: { signal: () => draw.img({ img: img.yiqToRgb }), quality: 80 },
+      44: { signal: () => draw.img({ img: img.qamEq }), quality: 80 },
+      43: { signal: () => draw.img({ img: img.qamLine }), quality: 80 },
+
+      
+      41: { signal: () => draw.img({ img: img.simGoals }), quality: 80 },
+      40: { signal: () => draw.img({ img: img.sponsors }), quality: 80 },
+      39: { signal: () => draw.img({ img: img.simModDemod }), quality: 80 },
+      38: { signal: () => draw.img({ img: img.modulate }), quality: 80 },
+      37: { signal: () => draw.img({ img: img.qamQuadrature }), quality: 80 },
+      36: { signal: () => draw.img({ img: img.demodulate }), quality: 80 },
+      35: { signal: () => draw.img({ img: img.demodulateIq }), quality: 80 },
+      34: { signal: () => draw.img({ img: img.demodulateCode1 }), quality: 80 },
+      33: { signal: () => draw.img({ img: img.demodulateCode2 }), quality: 80 },
+      32: { signal: () => draw.img({ img: img.demodulateCode3 }), quality: 80 },
+      31: { signal: () => draw.img({ img: img.maskCode }), quality: 80 },
+
+      29: {
+        signal: draw.vhs,
+        quality: (now) => 80 - Math.floor(
+          Math.pow(Math.sin(now/1000*2)*0.5+0.5,8.0)*10
+        )/10*50
+      },
+      28: {
+        signal: draw.headAzimuth,
+        quality: (now) => 80 - Math.floor(Math.pow(Math.sin(now/2000)*0.5+0.5,8)*4)/4*15
+      },
+      27: { signal: draw.helicalScan, quality: 75 },
+      26: { signal: () => draw.img({ img: img.vhsTapeLayout }), quality: 80 },
+      25: { signal: () => draw.img({ img: img.vhsVideoAzimuth }), quality: 80 },
+      24: { signal: () => draw.img({ img: img.vhsHiFi }), quality: 75 },
+      23: { signal: () => draw.img({ img: img.vhsSim }), quality: 80 },
+
+      21: { signal: draw.hyperlinks, quality: 80 },
+      20: { signal: draw.books, quality: 80 },
     }
     state.events.on('frame', () => window.requestAnimationFrame(frame))
     frame()
