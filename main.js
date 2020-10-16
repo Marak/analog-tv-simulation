@@ -46,6 +46,11 @@ var html = require('choo/html')
 var ui = (function () {
   var elem = html`<div class="ch-ui">
     <style>
+      .ch-ui {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+      }
       .ch-ui button {
         font-family: monospace;
         font-size: 4em;
@@ -54,9 +59,15 @@ var ui = (function () {
         opacity: 50%;
         border-width: 0px;
       }
+      .ch-ui button.bottom {
+        display: block;
+        position: absolute;
+        bottom: 5px;
+      }
     </style>
     <div><button onclick=${up}>\u25b2</button></div>
     <div><button onclick=${down}>\u25bc</button></div>
+    <div><button class="bottom" onclick=${toggleStatic}>x</button></div>
   </div>`
   elem.style.position = 'absolute'
   elem.style.top = '5px'
@@ -73,6 +84,10 @@ var ui = (function () {
     state.events.emit('set-channel', wrapCh(state.channel.value-1))
     location.hash = String(state.channel.value)
   }
+  function toggleStatic() {
+    state.ui.enabled = true
+    state.static = !state.static
+  }
 })()
 
 function hashChange(ev) {
@@ -80,7 +95,6 @@ function hashChange(ev) {
   if (validCh(ch)) {
     state.events.emit('set-channel', ch)
   } else {
-    state.events.emit('set-channel', ch)
     location.hash = String(state.channel.value)
   }
 }
@@ -136,7 +150,7 @@ window.addEventListener('keydown', (ev) => {
     } else {
       state.paused = true
     }
-  } else if (ev.key === 'q') {
+  } else if (ev.key === 'x') {
     state.static = !state.static
   }
 })
